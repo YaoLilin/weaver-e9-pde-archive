@@ -26,4 +26,5 @@ build
 .idea
 bin
 log
+**/test
 

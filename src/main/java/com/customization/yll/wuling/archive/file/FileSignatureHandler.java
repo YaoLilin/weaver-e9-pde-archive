@@ -6,7 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.customization.yll.common.IntegrationLog;
-import com.customization.yll.common.doc.SysFileSignatureInfoManager;
+import com.customization.yll.common.doc.QysFileSignatureInfoManager;
 import com.customization.yll.common.doc.bean.SignatureResult;
 import com.customization.yll.common.web.exception.ApiCallException;
 import com.customization.yll.common.web.util.ApiCallManager;
@@ -44,7 +44,7 @@ public class FileSignatureHandler {
         RecordSet recordSet = new RecordSet();
         QysSignatureDocDownloadManger signatureDocDownloadManger = new QysSignatureDocDownloadManger(serverAddress,
                 token, secret);
-        SysFileSignatureInfoManager signatureInfoManager = new SysFileSignatureInfoManager(serverAddress,
+        QysFileSignatureInfoManager signatureInfoManager = new QysFileSignatureInfoManager(serverAddress,
                 token, secret);
         for (FileInfo file : fileInfos) {
             Optional<QysDocInfo> qysDocInfo = getSignatureDocId(file.getImageFileId(), requestId, recordSet);
@@ -105,7 +105,7 @@ public class FileSignatureHandler {
      * @return 文件签名信息列表
      */
     List<FileSignatureInfo> getFileSignInfo(FileInfo fileInfo, long contractId,
-                                            SysFileSignatureInfoManager signatureInfoManager) {
+                                            QysFileSignatureInfoManager signatureInfoManager) {
         log.info("获取文件签名信息，文件名称：" + fileInfo.getTitle());
         String signOperator = getSignOperator(contractId);
         if (signOperator.isEmpty()) {

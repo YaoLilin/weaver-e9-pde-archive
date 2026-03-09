@@ -7,7 +7,6 @@ import com.customization.yll.common.doc.DocConvertorByWpsApi;
 import com.customization.yll.common.doc.DocFileManager;
 import com.customization.yll.common.doc.bean.DocFileInfo;
 import com.customization.yll.common.doc.constants.DocFileType;
-import com.customization.yll.common.doc.util.AsposePDFConverter;
 import com.customization.yll.common.doc.util.FileConvertUtil;
 import com.customization.yll.common.exception.ConfigurationException;
 import com.customization.yll.common.exception.DocConvertException;
@@ -20,7 +19,6 @@ import com.customization.yll.wuling.archive.constants.FileType;
 import com.customization.yll.wuling.archive.constants.FormPdfNodePositionType;
 import com.customization.yll.wuling.archive.entity.DocumentFieldOption;
 import com.customization.yll.wuling.archive.exception.HandleWorkflowFileException;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import weaver.conn.RecordSet;
 import weaver.integration.logging.Logger;
@@ -300,16 +298,6 @@ public class WorkflowFileManager {
         String title = docFileInfo.getFileName();
         return new FileInfo(title, fileType, docFileInfo.getImageFileId(),
                 fileId, docFileInfo.getFilePath(),docFileInfo.getDocId());
-    }
-
-    private boolean convertPdfByAspose(String sourceFile, String pdfFilePath) {
-        try {
-            String result = AsposePDFConverter.doc2Pdf(sourceFile, pdfFilePath);
-            return !StringUtils.isEmpty(result);
-        } catch (Exception e) {
-            log.error("使用 Aspose 转换pdf失败", e);
-            return false;
-        }
     }
 
     private void convertPdfByWpsApi(DocFileInfo docFile, String pdfSavePath) {
