@@ -124,9 +124,9 @@
 
 #### 二、源码编译
 
-本地需要有泛微开发环境,下载本项目的源码进行编译，然后打成 jar 包放入`ecology/WEB-INF/lib` 中，或将 class 文件放入 `ecology/classbean` 中
-
-
+本地需要有泛微开发环境,下载本项目的源码进行编译，项目中需要添加 `out-dep` 目录中的依赖，然后打成 jar 包放入
+`ecology/WEB-INF/lib` 中，
+或将 class 文件放入 `ecology/classbean` 中
 
 ### 服务器 jar 包部署
 
