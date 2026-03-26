@@ -76,7 +76,7 @@ public class PackArchiveDataManager {
 
             // 执行打包
             File file = packager.doZip(requestId + "-" + System.currentTimeMillis()+".asip");
-            logger.info(file.getAbsolutePath() + "：（" + file.length() + ")");
+            logger.info("档案包路径: " + file.getAbsolutePath() + "：（" + file.length() + ")");
             return file.getAbsolutePath();
         } catch (Exception e) {
             throw new ArchivePackException("打包归档文件出错", e);

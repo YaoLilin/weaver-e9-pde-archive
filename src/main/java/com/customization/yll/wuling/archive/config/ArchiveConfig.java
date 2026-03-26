@@ -69,6 +69,16 @@ public class ArchiveConfig {
                 true,PropertiesUtil.DEFAULT_EXPIRE_THREE_MINUTES);
     }
 
+    public static String getSsoTokenUrl() {
+        return PropertiesUtil.getPropValue(CONFIG_FILE_NAME, "ssoTokenUrl", true,
+                true, PropertiesUtil.DEFAULT_EXPIRE_THREE_MINUTES);
+    }
+
+    public static String getClientSecret() {
+        return PropertiesUtil.getPropValue(CONFIG_FILE_NAME, "clientSecret", true,
+                true, PropertiesUtil.DEFAULT_EXPIRE_THREE_MINUTES);
+    }
+
     public static String getPassword() {
         return PropertiesUtil.getPropValue(CONFIG_FILE_NAME, "password", true,
                 true,PropertiesUtil.DEFAULT_EXPIRE_THREE_MINUTES);
