@@ -75,6 +75,7 @@ public class ArchiveServiceImpl extends Service implements ArchiveService {
      */
     @Override
     public void push(int configId, int requestId, boolean isHistoryWorkflow) {
+        log.info("执行档案推送：请求id：" + requestId + "，配置id：" + configId + "，是否历史流程：" + isHistoryWorkflow);
         PackArchiveDataManager packManager = new PackArchiveDataManager(new ArchiveDataManager(requestId, configId),
                 requestId);
         ArchiveDataPushTask task = new ArchiveDataPushTask(requestId, configId, true,
@@ -88,6 +89,7 @@ public class ArchiveServiceImpl extends Service implements ArchiveService {
      */
     @Override
     public HistoryArchivePushResult pushHistoryWorkflow(List<Integer> workflowIds) {
+        log.info("开始推送历史流程档案，流程id集合：" + workflowIds);
         if (!CacheUtil.isRedis()) {
             log.info("当前环境没有集成 redis");
         }

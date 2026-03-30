@@ -31,16 +31,6 @@ public class ArchiveDataPushAction implements Action {
      */
     private String async = "1";
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private DataPushTask pushTask;
-    private ArchiveConfigModeService archiveConfigModeService;
-
-    public ArchiveDataPushAction(DataPushTask pushTask, ArchiveConfigModeService archiveConfigModeService) {
-        this.pushTask = pushTask;
-        this.archiveConfigModeService = archiveConfigModeService;
-    }
-
-    public ArchiveDataPushAction() {
-    }
 
     @Override
     public String execute(RequestInfo requestInfo) {
@@ -54,13 +44,11 @@ public class ArchiveDataPushAction implements Action {
                 return FAILURE_AND_CONTINUE;
             }
             int requestId = Integer.parseInt(requestInfo.getRequestid());
-            if (this.pushTask == null) {
-                PackArchiveDataManager packManager = new PackArchiveDataManager(new ArchiveDataManager(requestId,
-                        configId.get()), requestId);
-                pushTask = new ArchiveDataPushTask(requestId,
-                        configId.get(), "1".equals(async), false, packManager,
-                        new ArchiveDataPushManager());
-            }
+            PackArchiveDataManager packManager = new PackArchiveDataManager(new ArchiveDataManager(requestId,
+                    configId.get()), requestId);
+            DataPushTask pushTask = new ArchiveDataPushTask(requestId,
+                    configId.get(), "1".equals(async), false, packManager,
+                    new ArchiveDataPushManager());
             if ("1".equals(async)) {
                 ArchiveDataPushTaskService service  = ArchiveDataPushTaskService.INSTANCE;
                 service.putTask(pushTask);
@@ -80,9 +68,7 @@ public class ArchiveDataPushAction implements Action {
     }
 
     private Optional<Integer> getConfigId(int workflowId) {
-        if (this.archiveConfigModeService == null) {
-            this.archiveConfigModeService = new ArchiveConfigModeServiceImpl(new RecordSet());
-        }
+        ArchiveConfigModeService archiveConfigModeService = new ArchiveConfigModeServiceImpl(new RecordSet());
         return archiveConfigModeService.getConfigId(workflowId);
     }
 }

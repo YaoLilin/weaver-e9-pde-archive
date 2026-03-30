@@ -1,6 +1,7 @@
 package com.customization.yll.wuling.archive.data;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
 import com.customization.yll.common.exception.ConfigModeDataNotFoundException;
 import com.customization.yll.common.mode.conf.ParamConfManager;
 import com.customization.yll.common.workflow.WorkflowFieldValueManager;
@@ -10,7 +11,7 @@ import com.customization.yll.wuling.archive.entity.FileMetadataConfEntity;
 import com.customization.yll.wuling.archive.service.ArchiveScopeValidator;
 import com.customization.yll.wuling.archive.service.ValidateResult;
 import com.customization.yll.wuling.archive.util.ObjectConvertUtil;
-import com.engine.email.biz.Html2Text;
+import com.engine.workflow.util.CommonUtil;
 import lombok.Getter;
 import weaver.integration.logging.Logger;
 import weaver.integration.logging.LoggerFactory;
@@ -49,24 +50,32 @@ abstract class AbstractFileMetadataManager {
         }
         fileMetadataEntity = new HashMap<>(40);
         List<FileMetadataConfEntity> fileMetadataConfDetail = configurationModeDataManager.getFileMetadataConfDetail();
+        log.debug("配置建模中配置的文件实体元数据明细：" + JSON.toJSONString(fileMetadataConfDetail));
         for (FileMetadataConfEntity entity : fileMetadataConfDetail) {
+            log.debug("当前元数据：" + entity);
             // 是否为代码固定，如果为代码固定，需要通过后端代码对元数据进行赋值，否则通过建模中的配置取值
             String value;
             if (entity.isFixed()) {
+                log.debug("当前元数据需要代码赋值，调用代码赋值方法进行赋值，元数据名称：" + entity.getName());
                 value = putCodeFixedValue(entity);
+                log.debug("代码赋值方法赋值结果，元数据名称：" + entity.getName() + "，值：" + value);
             } else {
+                log.debug("当前元数据不需要代码赋值，通过建模配置取值，元数据名称：" + entity.getName());
                 value = paramConfManager
                         .getParamValue(ObjectConvertUtil.convertToParamConfigurationEntity(entity));
+                log.debug("通过建模配置取值结果，元数据名称：" + entity.getName() + "，值：" + value);
             }
             if (StrUtil.isNotBlank(value)) {
-                value = Html2Text.getContent(value);
+                value = CommonUtil.delHTMLTag(value);
             }
+            log.debug("去除html标签后的值，元数据名称：" + entity.getName() + "，值：" + value);
             fileMetadataEntity.put(entity.getName(), value);
         }
         if (fileMetadataEntity.containsKey("日期")) {
             String date = fileMetadataEntity.get("日期");
             if (date.contains("-")) {
                 fileMetadataEntity.put("日期", date.replace("-", ""));
+                log.debug("将日期中的-去除，新的日期值：" + fileMetadataEntity.get("日期"));
             }
         }
         if (ArchiveConfig.enableArchivingScope()) {
