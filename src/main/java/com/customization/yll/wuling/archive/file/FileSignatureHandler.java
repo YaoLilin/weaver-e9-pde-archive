@@ -13,6 +13,7 @@ import com.customization.yll.common.web.util.ApiCallManager;
 import com.customization.yll.common.web.util.QysSignatureUtil;
 import com.customization.yll.wuling.archive.config.ArchiveConfig;
 import com.customization.yll.wuling.archive.exception.HandleWorkflowFileException;
+import lombok.Setter;
 import weaver.conn.RecordSet;
 
 import java.io.File;
@@ -25,11 +26,13 @@ import java.util.Optional;
  * @desc 处理文件签名
  * @date 2025/8/13
  **/
+@Setter
 public class FileSignatureHandler {
     private final IntegrationLog log = new IntegrationLog(FileSignatureHandler.class);
     private String serverAddress;
     private String token;
     private String secret;
+    private ApiCallManager apiCallManager = new ApiCallManager();
 
     /**
      * 添加文件签名
@@ -145,7 +148,6 @@ public class FileSignatureHandler {
      */
     String getSignOperator(long contractId) {
         log.info("获取签名操作者，合同ID：" + contractId);
-        ApiCallManager apiCallManager = new ApiCallManager();
         String result = apiCallManager.getResult(this.serverAddress + "/contract/detail?contractId=" +
                         contractId,null, QysSignatureUtil.getSignatureHead(this.token, this.secret));
         log.info("查询电子签约详情信息结果：" + result);
@@ -164,7 +166,8 @@ public class FileSignatureHandler {
                 if (CollUtil.isNotEmpty(actions)) {
                     Optional<Object> actionOp = actions.stream().filter(i -> {
                         JSONObject item = (JSONObject) i;
-                        return "SIGNED".equals(item.getString("status"));
+                        String status = item.getString("status");
+                        return "SIGNED".equals(status) || "SIGNING".equals(status);
                     }).findAny();
                     if (actionOp.isPresent()) {
                         JSONObject action = (JSONObject) actionOp.get();
