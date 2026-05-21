@@ -4,8 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import com.customization.yll.common.exception.ConfigModeDataNotFoundException;
 import com.customization.yll.common.exception.FieldValueEmptyException;
 import com.customization.yll.common.mode.conf.ParamConfManager;
+import com.customization.yll.common.util.DbUtil;
 import com.customization.yll.common.util.ModeUtil;
-import com.customization.yll.common.util.SqlUtil;
 import com.customization.yll.common.util.WorkflowUtil;
 import com.customization.yll.common.workflow.WorkflowFieldValueManager;
 import com.customization.yll.wuling.archive.api.ApiResult;
@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,10 +182,11 @@ public class ArchiveDataPushTask implements DataPushTask {
                 log.error("插入推送结果到台账失败");
             }
         } else {
-            List<Object> params = new ArrayList<>(data.values());
-            params.add(id);
-            if (!recordSet.executeUpdate("update " + TABLE_NAME + " set " +
-                    SqlUtil.buildUpdateSql(new ArrayList<>(data.keySet())) + " where id=?", params)) {
+            Map<String, Object> conditions = new HashMap<>(1);
+            conditions.put("id", id);
+            if (DbUtil.update(data, conditions, TABLE_NAME, recordSet)) {
+                log.info("更新推送结果到台账成功");
+            } else {
                 log.error("更新推送结果到台账失败");
             }
         }
