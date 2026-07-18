@@ -62,9 +62,10 @@ public class FileSignatureHandler {
                     List<FileSignatureInfo> signatureInfoList = getFileSignInfo(file, qysDocInfo.get().contractId,
                             signatureInfoManager);
                     if (signatureInfoList.isEmpty()) {
-                        throw new HandleWorkflowFileException("无法获取文件签名，文件名称：" + file.getTitle());
+                        log.warn("无法获取文件签名，文件名称：" + file.getTitle());
+                    } else {
+                        file.setSignatureInfo(signatureInfoList);
                     }
-                    file.setSignatureInfo(signatureInfoList);
                 } else {
                     throw new HandleWorkflowFileException("下载契约锁盖章文件失败，文件名称：" + file.getTitle()
                             + ", 文档id：" + file.getDocId());

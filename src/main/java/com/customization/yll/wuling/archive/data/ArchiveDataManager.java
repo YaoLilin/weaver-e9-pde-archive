@@ -322,7 +322,8 @@ public class ArchiveDataManager {
 
     private void addDocSignature(Doc doc, FileInfo fileInfo) {
         if (CollUtil.isEmpty(fileInfo.getSignatureInfo())) {
-            throw new ArchiveDataException("文件无签名信息");
+            log.warn("文件无签名信息,文件名称：" + fileInfo.getTitle());
+            return;
         }
         List<DigitalSignature> signatureList = new ArrayList<>();
         for (FileSignatureInfo signatureInfo : fileInfo.getSignatureInfo()) {
