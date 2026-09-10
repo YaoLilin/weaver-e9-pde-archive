@@ -52,6 +52,11 @@ public class ConfigurationModeDataManager {
         if (!otherImageFiles.isEmpty()) {
             otherImageFileList = Convert.toList(Integer.class, otherImageFiles.split(","));
         }
+        String imageFiles = recordSet.getString("image_file");
+        List<Integer> imageFileList = null;
+        if (!imageFiles.isEmpty()) {
+            imageFileList = Convert.toList(Integer.class, imageFiles.split(","));
+        }
         String hlgDocFieldValue = recordSet.getString("hlg_doc");
         List<Integer> hlgDocs = null;
         if (!hlgDocFieldValue.isEmpty()) {
@@ -60,7 +65,7 @@ public class ConfigurationModeDataManager {
         mainFieldEntity = new ModeConfMainFieldEntity();
         mainFieldEntity.setId(configId);
         mainFieldEntity.setMainBody(Convert.toInt(recordSet.getString("main_body")));
-        mainFieldEntity.setImageFile(Convert.toInt(recordSet.getString("image_file")));
+        mainFieldEntity.setImageFile(imageFileList);
         mainFieldEntity.setOtherImageFiles(otherImageFileList);
         mainFieldEntity.setHlgDocs(hlgDocs);
         mainFieldEntity.setWorkflowId(Convert.toInt(recordSet.getString("workflow")));

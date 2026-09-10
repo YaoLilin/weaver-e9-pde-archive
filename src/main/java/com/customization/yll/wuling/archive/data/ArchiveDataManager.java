@@ -18,8 +18,12 @@ import com.customization.yll.wuling.archive.file.FileInfo;
 import com.customization.yll.wuling.archive.file.FileSignatureInfo;
 import com.customization.yll.wuling.archive.file.FormPdfOptions;
 import com.customization.yll.wuling.archive.file.WorkflowFileManager;
+import com.customization.yll.wuling.archive.file.ArchiveFileConvertor;
+import com.customization.yll.wuling.archive.file.YozoDcsConvertManager;
+import com.customization.yll.common.web.util.ApiCallManager;
 import com.customization.yll.wuling.archive.util.CommonArchiveDataUtil;
 import com.pde.pdes.eep.domian.metadata.*;
+import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -42,10 +46,13 @@ import java.util.stream.Collectors;
 public class ArchiveDataManager {
     private final RecordSet recordSet = new RecordSet();
     @Setter
+    @Getter
     private AbstractFileMetadataManager metadataManager;
     @Setter
+    @Getter
     private WorkflowFileManager fileManager;
     @Setter
+    @Getter
     private BusinessMetadataManager businessMetadataManager;
     private final Integer requestId;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -74,8 +81,13 @@ public class ArchiveDataManager {
         DocumentFieldOption documentFieldOption = getDocumentFieldValues(fieldValueManager, mainFieldEntity);
         FormPdfOptions formPdfOptions = new FormPdfOptions(mainFieldEntity.isCreateFormPdf(),
                 mainFieldEntity.getFormPdfNodePositionType(), mainFieldEntity.getFormPdfNodeId());
-        return new WorkflowFileManager(requestId,
-                mainFieldEntity.isAttachmentInMainBody(), documentFieldOption, formPdfOptions, savePath);
+        WorkflowFileManager workflowFileManager = new WorkflowFileManager(requestId,
+                mainFieldEntity.isAttachmentInMainBody(), documentFieldOption, formPdfOptions, savePath,
+                new ArchiveFileConvertor(new YozoDcsConvertManager(new ApiCallManager(300))));
+        WorkflowFileManager.Options options = new WorkflowFileManager.Options();
+        options.setFileRenameToUuid(true);
+        workflowFileManager.setOptions(options);
+        return workflowFileManager;
     }
 
     @NotNull
@@ -87,9 +99,11 @@ public class ArchiveDataManager {
             documentFieldValues.setMainBodyFieldValue(getFieldDocIds(workflowMainBodyValue));
         }
         List<Integer> imageFiles = new ArrayList<>();
-        if (mainFieldEntity.getImageFile() != null) {
-            String workflowImageFileValue = fieldValueManager.getFieldValue(mainFieldEntity.getImageFile());
-            imageFiles.addAll(getFieldDocIds(workflowImageFileValue));
+        if (CollUtil.isNotEmpty(mainFieldEntity.getImageFile())) {
+            for (Integer fieldId : mainFieldEntity.getImageFile()) {
+                String workflowImageFileValue = fieldValueManager.getFieldValue(fieldId);
+                imageFiles.addAll(getFieldDocIds(workflowImageFileValue));
+            }
         }
         // 获取其它附件文档id，其它附件可以配置多个流程字段，要对每个字段分别获取文档id
         if (CollUtil.isNotEmpty(mainFieldEntity.getOtherImageFiles())) {

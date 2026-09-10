@@ -8,4 +8,6 @@ package com.customization.yll.wuling.archive.constants;
 public class FileConvertMethod {
     public static final String WPS = "wps";
     public static final String WPS_API = "wpsApi";
+    /** 使用私有部署的永中 DCS 服务转换。 */
+    public static final String YOZO_DCS = "yozoDcs";
 }

@@ -49,7 +49,7 @@ public class ArchiveConfig {
      * @return 是否启用查询归档范围
      */
     public static boolean enableArchivingScope() {
-        return "1".equals(PropertiesUtil.getPropValue(CONFIG_FILE_NAME, "enableArchivingScope", true,
+        return "1".equals(PropertiesUtil.getPropValue(CONFIG_FILE_NAME, "enableArchivingScope", false,
                 true));
     }
 
@@ -112,6 +112,16 @@ public class ArchiveConfig {
     public static String getWpsAccessKey() {
         return PropertiesUtil.getPropValue(CONFIG_FILE_NAME, "wpsAccessKey", false,
                 true,PropertiesUtil.DEFAULT_EXPIRE_THREE_MINUTES);
+    }
+
+    /**
+     * 获取私有部署永中 DCS 服务地址，不包含 {@code /composite/upload} 路径。
+     *
+     * @return 永中 DCS 服务地址
+     */
+    public static String getYozoDcsServerAddress() {
+        return PropertiesUtil.getPropValue(CONFIG_FILE_NAME, "yozoDcsServerAddress", false,
+                true, PropertiesUtil.DEFAULT_EXPIRE_THREE_MINUTES);
     }
 
     public static String getOaAddress() {

@@ -2,23 +2,19 @@ package com.customization.yll.wuling.archive.file;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.StrUtil;
-import com.customization.yll.common.doc.DocConvertorByWpsApi;
 import com.customization.yll.common.doc.DocFileManager;
 import com.customization.yll.common.doc.bean.DocFileInfo;
 import com.customization.yll.common.doc.constants.DocFileType;
-import com.customization.yll.common.doc.util.FileConvertUtil;
 import com.customization.yll.common.exception.ConfigurationException;
-import com.customization.yll.common.exception.DocConvertException;
-import com.customization.yll.common.exception.PropNotConfigureException;
 import com.customization.yll.common.util.DocUtil;
 import com.customization.yll.common.workflow.WorkflowFormPdfCreator;
 import com.customization.yll.wuling.archive.config.ArchiveConfig;
-import com.customization.yll.wuling.archive.constants.FileConvertMethod;
 import com.customization.yll.wuling.archive.constants.FileType;
 import com.customization.yll.wuling.archive.constants.FormPdfNodePositionType;
 import com.customization.yll.wuling.archive.entity.DocumentFieldOption;
 import com.customization.yll.wuling.archive.exception.HandleWorkflowFileException;
+import lombok.Data;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import weaver.conn.RecordSet;
 import weaver.integration.logging.Logger;
@@ -50,6 +46,10 @@ public class WorkflowFileManager {
     private List<FileInfo> workflowFiles;
     private final boolean isAttachmentInMainBody;
     private final FormPdfOptions formPdfOptions;
+    @Setter
+    private FileConvertor fileConvertor;
+    @Setter
+    private Options options = new Options();
 
     /**
      * @param requestId              流程请求id
@@ -57,14 +57,17 @@ public class WorkflowFileManager {
      * @param documentFieldOptions   流程中的正文和附件字段值
      * @param formPdfOptions         生成表单pdf选项
      * @param savePath               存放获取文件的存储路径
+     * @param fileConvertor          文件格式转换器
      */
     public WorkflowFileManager(int requestId, boolean isAttachmentInMainBody,
-                               DocumentFieldOption documentFieldOptions, FormPdfOptions formPdfOptions, String savePath) {
+                               DocumentFieldOption documentFieldOptions, FormPdfOptions formPdfOptions, String savePath,
+                               FileConvertor fileConvertor) {
         this.requestId = requestId;
         this.documentFieldOptions = documentFieldOptions;
         this.savePath = savePath;
         this.isAttachmentInMainBody = isAttachmentInMainBody;
         this.formPdfOptions = formPdfOptions;
+        this.fileConvertor = fileConvertor;
     }
 
     /**
@@ -225,14 +228,18 @@ public class WorkflowFileManager {
             if ("pdf".equalsIgnoreCase(suffix)) {
                 pdfFiles.add(docFile);
             } else {
-                Optional<DocFileInfo> pdfFile = convertToPdf(docFile);
-                pdfFile.ifPresent(pdfFiles::add);
+                File pdfFile = fileConvertor.convert(docFile);
+                updatePdfFileInfo(docFile, pdfFile);
+                pdfFiles.add(docFile);
             }
         }
         return pdfFiles;
     }
 
     private void renameFileToUuid(FileInfo fileInfo) {
+        if (options == null || !options.isFileRenameToUuid()) {
+            return;
+        }
         File file = new File(fileInfo.getFilePath());
         String fileName = file.getName();
         String newFileName = UUID.randomUUID() +
@@ -261,30 +268,17 @@ public class WorkflowFileManager {
                 formPdfFileId, formPdfFileId + "", pdfPath,null);
     }
 
-    private Optional<DocFileInfo> convertToPdf(DocFileInfo docFile) {
-        log.info("转为pdf，文件路径：" + docFile.getFilePath());
-        String pdfSavePath = docFile.getFilePath().substring(0, docFile.getFilePath().lastIndexOf(".")) + ".pdf";
-        String fileConvertMethod = ArchiveConfig.getFileConvertMethod();
-        switch (fileConvertMethod) {
-            case FileConvertMethod.WPS:
-                // 使用wps集成进行转换
-                if (!FileConvertUtil.convertToPdfByWpsIntegrationSave(pdfSavePath, docFile.getImageFileId())) {
-                    throw new DocConvertException("使用wps集成转换为pdf失败");
-                }
-                break;
-            case FileConvertMethod.WPS_API:
-                // 使用 wps 中台api进行转换
-                convertPdfByWpsApi(docFile, pdfSavePath);
-                break;
-            default:
-                throw new ConfigurationException("文件转换方式配置不正确");
-        }
-        log.info("转换成功");
+    /**
+     * 将转换后的 PDF 文件路径和文件名写回文档文件信息。
+     *
+     * @param docFile 文档文件信息
+     * @param pdfFile 已转换的 PDF 文件
+     */
+    private void updatePdfFileInfo(DocFileInfo docFile, File pdfFile) {
         String pdfFileName = docFile.getFileName().substring(0, docFile.getFileName()
                 .lastIndexOf(".")) + ".pdf";
-        docFile.setFilePath(pdfSavePath);
+        docFile.setFilePath(pdfFile.getAbsolutePath());
         docFile.setFileName(pdfFileName);
-        return Optional.of(docFile);
     }
 
     @NotNull
@@ -298,29 +292,6 @@ public class WorkflowFileManager {
         String title = docFileInfo.getFileName();
         return new FileInfo(title, fileType, docFileInfo.getImageFileId(),
                 fileId, docFileInfo.getFilePath(),docFileInfo.getDocId());
-    }
-
-    private void convertPdfByWpsApi(DocFileInfo docFile, String pdfSavePath) {
-        String wpsServerHost = ArchiveConfig.getWpsServerHost();
-        String wpsAccessKey = ArchiveConfig.getWpsAccessKey();
-        String wpsSecret = ArchiveConfig.getWpsSecret();
-        if (StrUtil.isEmpty(wpsServerHost)) {
-            throw new PropNotConfigureException("wps服务地址未配置");
-        }
-        if (StrUtil.isEmpty(wpsAccessKey)) {
-            throw new PropNotConfigureException("wps AccessKey 未配置");
-        }
-        if (StrUtil.isEmpty(wpsSecret)) {
-            throw new PropNotConfigureException("wps Secret 未配置");
-        }
-        String oaAddress = ArchiveConfig.getOaAddress();
-        log.info("oa 地址：" + oaAddress);
-        DocConvertorByWpsApi convertor = new DocConvertorByWpsApi(oaAddress,
-                wpsServerHost, wpsSecret, wpsAccessKey);
-        File pdf = convertor.convert(docFile.getImageFileId(), pdfSavePath, "pdf", null);
-        if (!Files.exists(pdf.toPath())) {
-            throw new DocConvertException("转换pdf失败，不能获取到保存的pdf文件，路径：" + pdfSavePath);
-        }
     }
 
     private int createFormPdf() {
@@ -350,6 +321,17 @@ public class WorkflowFileManager {
         recordSet.executeQuery("select imagefilename from imagefile where imagefileid=?", fileId);
         recordSet.next();
         return recordSet.getString("imagefilename");
+    }
+
+    /**
+     * 配置项，可通过配置该配置项来定义文件获取中的行为
+     */
+    @Data
+    public static class Options{
+        /**
+         * 是否将文件重命名为 uuid，如果为 false 则使用原文件名
+         */
+        private boolean fileRenameToUuid = false;
     }
 
 }

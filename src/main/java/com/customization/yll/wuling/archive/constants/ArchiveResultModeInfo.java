@@ -20,4 +20,6 @@ public class ArchiveResultModeInfo {
     public static final String API_RESULT = "api_result";
     public static final String CALLBACK_RESULT = "callback_result";
     public static final String IS_HISTORY_WORKFLOW = "is_history";
+    public static final String EXCEPTION = "exception";
+    public static final String ARCHIVE_FILE = "archive_file";
 }

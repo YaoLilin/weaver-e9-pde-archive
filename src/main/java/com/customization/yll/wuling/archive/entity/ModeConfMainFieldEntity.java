@@ -16,7 +16,10 @@ public class ModeConfMainFieldEntity {
     private String workflowTableName;
     private WorkflowType workflowType;
     private Integer mainBody;
-    private Integer imageFile;
+    /**
+     * 附件字段 ID，可配置多个。
+     */
+    private List<Integer> imageFile;
     private List<Integer> otherImageFiles;
     private List<Integer> hlgDocs;
     private boolean isAttachmentInMainBody;
@@ -72,11 +75,11 @@ public class ModeConfMainFieldEntity {
         this.mainBody = mainBody;
     }
 
-    public Integer getImageFile() {
+    public List<Integer> getImageFile() {
         return imageFile;
     }
 
-    public void setImageFile(Integer imageFile) {
+    public void setImageFile(List<Integer> imageFile) {
         this.imageFile = imageFile;
     }
 
